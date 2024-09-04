@@ -1,1 +1,0 @@
-web: gunicorn busreserve.wsgi --log-file -
