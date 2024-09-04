@@ -11,7 +11,7 @@ from django.conf import settings
 
 def home(request):
     context = {'STATIC_VERSION': settings.STATIC_VERSION}
-    return render(request, 'myapp/home.html', context)
+    return render(request, 'home.html', context)
 
 def deleteAll(request):
     Bus.objects.update(rem = F('capacity'))
@@ -23,7 +23,7 @@ def viewprofile(request):
     user_r = request.user
     userprofile = UserProfile.objects.get(user=user_r)
     phno_r = userprofile.phno
-    return render(request, 'myapp/profile.html', {'user': user_r, 'phno': phno_r})
+    return render(request, 'profile.html', {'user': user_r, 'phno': phno_r})
 
 
 @login_required(login_url='signin')
@@ -35,11 +35,11 @@ def findbus(request):
         date_str = request.POST.get('date')
 
         if date_str is None or date_str == '':
-           return render(request, 'myapp/error.html', {'message': 'Date is required'})
+           return render(request, 'error.html', {'message': 'Date is required'})
         try:
             date = datetime.strptime(date_str, '%Y-%m-%d')
         except ValueError:
-            return render(request, 'myapp/error.html', {'message': 'Invalid date format'})
+            return render(request, 'error.html', {'message': 'Invalid date format'})
 
         buses = Bus.objects.filter(
             source=source,
@@ -47,13 +47,13 @@ def findbus(request):
             date=date
         )
         if buses:
-            return render(request, 'myapp/list.html', {'buses': buses})
+            return render(request, 'list.html', {'buses': buses})
         else:
             #context['data'] = request.POST
             context['error'] = "No available Bus Schedule for entered Route and Date"
-            return render(request, 'myapp/findbus.html', context)
+            return render(request, 'findbus.html', context)
     
-    return render(request, 'myapp/findbus.html')
+    return render(request, 'findbus.html')
 
 
 @login_required(login_url='signin')
@@ -80,13 +80,13 @@ def bookings(request):
                                            nos=seats_r, price=price_r, 
                                            status='BOOKED')
                 print('------------book id-----------', book.id)
-                return render(request, 'myapp/bookings.html', {'book': book, 'bus': bus})
+                return render(request, 'bookings.html', {'book': book, 'bus': bus})
             else:
                 context["error"] = "Sorry select fewer number of seats"
-                return render(request, 'myapp/findbus.html', context)
+                return render(request, 'findbus.html', context)
 
     else:
-        return render(request, 'myapp/findbus.html')
+        return render(request, 'findbus.html')
 
 
 @login_required(login_url='signin')
@@ -107,9 +107,9 @@ def cancellings(request):
             return redirect(seebookings)
         except Book.DoesNotExist:
             context["error"] = "Sorry You have not booked that bus"
-            return render(request, 'myapp/error.html', context)
+            return render(request, 'error.html', context)
     else:
-        return render(request, 'myapp/findbus.html')
+        return render(request, 'findbus.html')
 
 
 @login_required(login_url='signin')
@@ -120,10 +120,10 @@ def seebookings(request):
     print(name_r)
     book_list = Book.objects.filter(userid=id_r)
     if book_list:
-        return render(request, 'myapp/booklist.html', {'book_list': book_list, 'name': name_r})
+        return render(request, 'booklist.html', {'book_list': book_list, 'name': name_r})
     else:
         context["error"] = "Sorry no buses booked"
-        return render(request, 'myapp/findbus.html', context)
+        return render(request, 'findbus.html', context)
 
 
 def signup(request):
@@ -138,12 +138,12 @@ def signup(request):
         if user:
             userprofile = UserProfile.objects.create(user=user, phno=phno_r)
             print("Phone no: ",userprofile.phno)
-            return render(request, 'myapp/thank.html')
+            return render(request, 'thank.html')
         else: 
             context["error"] = "Provide valid credentials"
-            return render(request, 'myapp/signup.html', context)
+            return render(request, 'signup.html', context)
     
-    return render(request, 'myapp/signup.html', context)
+    return render(request, 'signup.html', context)
 
 
 def signin(request):
@@ -156,17 +156,17 @@ def signin(request):
             login(request, user)
             context["user"] = name_r
             context["id"] = request.user.id
-            return render(request, 'myapp/success.html', context)
+            return render(request, 'success.html', context)
         else:
             context["error"] = "Invalid Username or Password"
-            return render(request, 'myapp/signin.html', context)
+            return render(request, 'signin.html', context)
     else:
         context["error"] = "You are not logged in"
-        return render(request, 'myapp/signin.html', context)
+        return render(request, 'signin.html', context)
 
 
 def signout(request):
     context = {}
     logout(request)
     context['error'] = "You have been logged out"
-    return render(request, 'myapp/bye.html', context)
+    return render(request, 'bye.html', context)
