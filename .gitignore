@@ -1,0 +1,9 @@
+vercel.json
+.env
+
+Outputs/
+__pycache__/
+
+*.py[cod]
+*.log
+*.sqlite3

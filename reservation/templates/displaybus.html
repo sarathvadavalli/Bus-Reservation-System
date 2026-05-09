@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Bus Details</title>
+      <style>
+            body {
+                  font-family: Arial, sans-serif;
+                  margin: 20px;
+                  background-color: #f5f5f5;
+            }
+            .bus-container {
+                  background-color: white;
+                  padding: 20px;
+                  border-radius: 8px;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                  max-width: 600px;
+                  margin: 0 auto;
+            }
+            .bus-header {
+                  border-bottom: 2px solid #007bff;
+                  margin-bottom: 20px;
+                  padding-bottom: 10px;
+            }
+            .bus-detail {
+                  display: flex;
+                  justify-content: space-between;
+                  padding: 10px 0;
+                  border-bottom: 1px solid #eee;
+            }
+            .label {
+                  font-weight: bold;
+                  color: #333;
+            }
+            .value {
+                  color: #666;
+            }
+            .price {
+                  color: #28a745;
+                  font-size: 1.2em;
+                  font-weight: bold;
+            }
+            .action-buttons {
+                  margin-top: 20px;
+                  text-align: center;
+            }
+            button {
+                  padding: 10px 20px;
+                  margin: 5px;
+                  background-color: #007bff;
+                  color: white;
+                  border: none;
+                  border-radius: 4px;
+                  cursor: pointer;
+            }
+            button:hover {
+                  background-color: #0056b3;
+            }
+      </style>
+</head>
+<body>
+      <div class="bus-container">
+            <div class="bus-header">
+                  <h1>{{ bus.bus_id.bus_name }}</h1>
+            </div>
+            
+            <div class="bus-detail">
+                  <span class="label">Bus ID:</span>
+                  <span class="value">{{ bus.id }}</span>
+            </div>
+            
+            <div class="bus-detail">
+                  <span class="label">Source:</span>
+                  <span class="value">{{ bus.source }}</span>
+            </div>
+            
+            <div class="bus-detail">
+                  <span class="label">Destination:</span>
+                  <span class="value">{{ bus.dest }}</span>
+            </div>
+
+            <div class="bus-detail">
+                  <span class="label">Arrival:</span>
+                  <span class="value">{{ bus.arrival_time }}</span>
+            </div>
+            
+            <div class="bus-detail">
+                  <span class="label">Departure:</span>
+                  <span class="value">{{ bus.departure_time }}</span>
+            </div>
+            
+            <div class="bus-detail">
+                  <span class="label">Date:</span>
+                  <span class="value">{{ bus.date }}</span>
+            </div>
+            
+            <div class="bus-detail">
+                  <span class="label">Capacity:</span>
+                  <span class="value">{{ bus.bus_id.capacity }}</span>
+            </div>
+            
+            <div class="bus-detail">
+                  <span class="label">Seats Available:</span>
+                  <span class="value">{{ bus.rem }}</span>
+            </div>
+            
+            <div class="bus-detail">
+                  <span class="label">Price:</span>
+                  <span class="price">₹{{ bus.bus_id.price }}</span>
+            </div>
+            
+            <div class="action-buttons">
+                  <button onclick="window.history.back()">Back</button>
+                  <button id="bookNowBtn">Book Now</button>
+            </div>
+      </div>
+      
+      <!-- Booking form (hidden) -->
+      <form id="bookingForm" method="post" action="{% url 'bookings' %}" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="schedule_id" id="bus_id" value="{{ bus.schedule_id }}">
+            <input type="hidden" name="no_seats" id="no_seats_hidden" value="">
+      </form>
+
+      <!-- Simple modal for seats input -->
+      <div id="seatModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);">
+            <div style="background:#fff; max-width:360px; margin:10% auto; padding:20px; border-radius:8px;">
+                  <h3 style="margin-top:0;">Book Seats</h3>
+                  <p>Available seats: <strong id="availableSeats">{{ bus.rem }}</strong></p>
+                  <label for="no_seats_input">Number of seats</label>
+                  <input id="no_seats_input" type="number" min="1" max="{{ bus.rem }}" price = "{{ bus.bus_id.price }}" value="1" style="width:100%; padding:8px; margin:8px 0;">
+                  <div style="margin-top:10px;">
+                       <strong>Total Price: ₹<span id="totalPrice">0</span></strong>
+                  </div>
+                  <div style="text-align:right; margin-top:10px;">
+                        <button id="cancelBtn" style="background:#6c757d;">Cancel</button>
+                        <button id="confirmBtn" style="margin-left:8px;">Confirm</button>
+                  </div>
+                  <p id="modalError" style="color:#c00; display:none; margin-top:8px;"></p>
+            </div>
+      </div>
+
+      <script>
+            const bookBtn = document.getElementById("bookNowBtn");
+            const modal = document.getElementById("seatModal");
+            const cancelBtn = document.getElementById("cancelBtn");
+            const confirmBtn = document.getElementById("confirmBtn");
+
+            const seatInput = document.getElementById("no_seats_input");
+            const hiddenSeatInput = document.getElementById("no_seats_hidden");
+            const bookingForm = document.getElementById("bookingForm");
+            const totalPriceEl = document.getElementById("totalPrice");
+            const modalError = document.getElementById("modalError");
+
+            const ticketPrice = parseFloat(seatInput.getAttribute("price"));
+            const maxSeats = parseInt(seatInput.getAttribute("max"));
+
+            // open modal
+            bookBtn.onclick = () => {
+            modal.style.display = "block";
+            updateTotal();
+            };
+
+            // cancel modal
+            cancelBtn.onclick = (e) => {
+            e.preventDefault();
+            modal.style.display = "none";
+            modalError.style.display = "none";
+            };
+
+            // confirm booking
+            confirmBtn.onclick = (e) => {
+            e.preventDefault();
+
+            const seats = parseInt(seatInput.value);
+
+            if (!seats || seats < 1) {
+                  showError("Enter a valid seat count");
+                  return;
+            }
+
+            if (seats > maxSeats) {
+                  showError("Seats exceed the availability");
+                  return;
+            }
+
+            hiddenSeatInput.value = seats;
+            bookingForm.submit();
+            };
+
+            seatInput.addEventListener("input", updateTotal);
+
+            function updateTotal() {
+            const seats = parseInt(seatInput.value) || 0;
+            if(seats > maxSeats || seats < 1) {
+                  totalPriceEl.innerText = "0";
+                  return;
+            }
+            totalPriceEl.innerText = seats * ticketPrice;
+            }
+
+            function showError(msg) {
+            modalError.innerText = msg;
+            modalError.style.display = "block";
+            }
+      </script>
+</body>
+</html>

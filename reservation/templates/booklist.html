@@ -1,0 +1,205 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container my-5">
+    {% for message in messages %} {% if message.tags %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endif %} {% endfor %}
+    <div class="card rounded-0">
+        <div class="card-header">
+            <div class="card-title h3 mb-0">List of Bookings</div>
+        </div>
+        <div class="card-body">
+            <div class="container-fluid">
+                <div class="nav nav-tabs mb-3" id="booking-tabs" role="tablist">
+                    <button class="nav-link active" type="button" data-booking-filter="upcoming">
+                        Upcoming <span class="badge bg-primary ms-1" id="upcoming-count">0</span>
+                    </button>
+                    <button class="nav-link" type="button" data-booking-filter="past">
+                        Past <span class="badge bg-secondary ms-1" id="past-count">0</span>
+                    </button>
+                    <button class="nav-link" type="button" data-booking-filter="cancelled">
+                        Cancelled <span class="badge bg-danger ms-1" id="cancelled-count">0</span>
+                    </button>
+                </div>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr class="bg-gradient bg-primary text-light">
+                            <th class="p-1 text-center">BOOKING ID</th>
+                            <th class="p-1 text-center">USER NAME</th>
+                            <th class="p-1 text-center">BUS NAME</th>
+                            <th class="p-1 text-center">SOURCE</th>
+                            <th class="p-1 text-center">DESTINATION</th>
+                            <th class="p-1 text-center">NUM OF SEATS</th>
+                            <th class="p-1 text-center">PRICE</th>
+                            <th class="p-1 text-center">DATE</th>
+                            <th class="p-1 text-center">ARRIVAL TIME</th>
+                            <th class="p-1 text-center">DEPARTURE TIME</th>
+                            <th class="p-1 text-center">STATUS</th>
+                        </tr>
+                    </thead>
+
+                    {% for row in book_list %}
+                    <tr class="booking-row" data-status="{{ row.status }}" data-booking-date="{{ row.date|date:'Y-m-d' }}">
+                        <td class="px-2 py-1 align-middle">{{row.bookid}}</td>
+                        <td class="px-2 py-1 align-middle">{{name}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.bus_name}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.source}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.dest}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.nos}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.price}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.date}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.arrival_time}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.departure_time}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.status}}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr id="empty-bookings-row" class="d-none">
+                        <td class="px-2 py-3 text-center text-muted" colspan="11">No bookings found in this tab.</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3 justify-content-center">
+        <div class="col-lg-5 col-md-7 col-sm-10 col-xs-12">
+            <div class="card rounded-0">
+                <div class="card-header">
+                    <div class="card-title h3 mb-0">Cancel Booking Form</div>
+                </div>
+                <div class="card-body">
+                    <div class="container-fluid">
+                        <form action="{% url 'cancellings' %}" method="post" id="cancel-form">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="booking_id" class="control-label">Booking ID</label>
+                                <input name='booking_id' class="form-control" type="number" id="booking_id">
+                            </div>
+                            {% if error %}
+                            <div class="alert alert-danger">
+                                {{error}}
+                            </div>
+                            {% endif %}
+                            <div class="alert alert-danger d-none" id="cancel-error"></div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <button class="btn btn-sm rounded-0 btn-danger w-100" form="cancel-form">Cancel Booking</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+    (function() {
+        const tabButtons = document.querySelectorAll('[data-booking-filter]');
+        const bookingRows = document.querySelectorAll('.booking-row');
+        const emptyRow = document.getElementById('empty-bookings-row');
+        const counts = {
+            upcoming: 0,
+            past: 0,
+            cancelled: 0
+        };
+        const todayDate = "{% now 'Y-m-d' %}";
+
+        function normalizeStatus(status) {
+            const upperStatus = String(status || '').toUpperCase();
+
+            if (upperStatus === 'B') {
+                return 'BOOKED';
+            }
+
+            if (upperStatus === 'C') {
+                return 'CANCELLED';
+            }
+
+            return upperStatus;
+        }
+
+        function getRowType(row) {
+            const status = normalizeStatus(row.dataset.status);
+            const bookingDate = row.dataset.bookingDate;
+
+            if (status === 'CANCELLED') {
+                return 'cancelled';
+            }
+
+            if (status === 'BOOKED' && bookingDate < todayDate) {
+                return 'past';
+            }
+
+            if (status === 'BOOKED' && bookingDate >= todayDate) {
+                return 'upcoming';
+            }
+
+            return '';
+        }
+
+        bookingRows.forEach(function(row) {
+            const rowType = getRowType(row);
+            row.dataset.bookingType = rowType;
+
+            if (counts[rowType] !== undefined) {
+                counts[rowType] += 1;
+            }
+        });
+
+        document.getElementById('upcoming-count').textContent = counts.upcoming;
+        document.getElementById('past-count').textContent = counts.past;
+        document.getElementById('cancelled-count').textContent = counts.cancelled;
+
+        function showTab(filter) {
+            let visibleRows = 0;
+
+            tabButtons.forEach(function(button) {
+                button.classList.toggle('active', button.dataset.bookingFilter === filter);
+            });
+
+            bookingRows.forEach(function(row) {
+                const isVisible = row.dataset.bookingType === filter;
+                row.classList.toggle('d-none', !isVisible);
+
+                if (isVisible) {
+                    visibleRows += 1;
+                }
+            });
+
+            emptyRow.classList.toggle('d-none', visibleRows > 0);
+        }
+
+        tabButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                showTab(button.dataset.bookingFilter);
+            });
+        });
+
+        showTab('upcoming');
+    })();
+
+    document.getElementById('cancel-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const bookingId = document.getElementById('booking_id').value;
+        const bookList = JSON.parse('{{ book_list_json|escapejs }}');;
+        
+        const booking = bookList.find(b => b.bookid == bookingId);
+        
+        if (!booking) {
+            alert('Booking ID not found');
+            return;
+        }
+        
+        // console.log(booking.id, booking.status);
+        if (['C', 'CANCELLED'].includes(booking.status.toUpperCase())) {
+            const errDiv = document.getElementById('cancel-error');
+            errDiv.textContent = 'Booking is already cancelled!';
+            errDiv.classList.remove('d-none');            
+            return;
+        }
+        
+        this.submit();
+    });
+    </script>
+
+
+{% endblock %}

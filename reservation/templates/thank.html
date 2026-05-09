@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    body{
+        background-color: cornsilk;
+    }
+</style>
+
+<div class="container">
+        <div class="row">
+            <div class="col-sm-6 mx-auto" style="margin-top: 5em">
+                <form action="{% url 'signin' %}"> 
+                    <h2>Account Created Successfully!!</h2><br>
+                    <div class="pull-right">
+                        <button type="Submit" class="btn btn-success float-right">Login</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

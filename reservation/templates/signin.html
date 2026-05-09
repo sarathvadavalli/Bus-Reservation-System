@@ -1,0 +1,48 @@
+{% extends 'base.html' %} 
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'password_style.css' %}">
+<style>
+    body{
+        background-color:gray;
+    }
+</style>
+<script src="{% static 'password_field.js' %}" defer></script>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-5 col-md-7 col-sm-10 col-xs-12" style = "margin: 50px; width: 36%;">
+        <div class="card rounded-0">
+            <div class="card-header">
+                <div class="card-title h3 fw-bolde mb-0 text-center">Login</div>
+            </div>
+            <div class="card-body">
+                <div class="container-fluid">
+                    <form action="{% url 'signin' %}" method="post" id="signin-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="username" class="control-label">Username:</label>
+                            <input name='username' class="form-control rounded-0" type="text" id="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="example-email-input" class="control-label">Password:</label> <br>
+                            <div class="password-container">
+                                <input type="password" id="password" name="password" class="form-control rounded-0" required>
+                                <img src = "{% static 'eye-open.png' %}" class="toggle-password"
+                                  data-eye-open="{% static 'eye-open.png' %}" 
+                                  data-eye-close="{% static 'eye-close.png' %}" 
+                                  onclick="togglePassword('password', this)">
+                            </div>
+                        </div>
+                    </form>
+                    <p class="text-danger text-center mb-2">{{error}}</p>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <button class="btn btn-sm rounded-0 btn-primary btn-block w-100" form="signin-form">Login</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

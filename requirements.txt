@@ -1,0 +1,6 @@
+# Runtime dependencies for the Bus Reservation Django app.
+# Keep this list small and app-specific; avoid `pip freeze` from a full machine.
+
+Django==5.0.2
+PyMySQL==1.1.1
+whitenoise==6.9.0
