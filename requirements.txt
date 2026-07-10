@@ -6,4 +6,3 @@ PyMySQL==1.1.1
 whitenoise==6.9.0
 python-dotenv
 cryptography
-mysqlclient
