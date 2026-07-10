@@ -4,4 +4,4 @@
 Django==5.0.2
 PyMySQL==1.1.1
 whitenoise==6.9.0
-dotenv-0.9.9
+python-dotenv
