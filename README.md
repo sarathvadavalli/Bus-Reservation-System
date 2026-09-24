@@ -38,6 +38,13 @@ f) <b>Booking history:</b> User can also view all the bookings made by him/her a
    
                     python manage.py runserver
 
+## Sample data
+{
+  "source": "Guntur",
+  "destination": "Hyderabad",
+  "date": "01-01-2027"
+}
+
 ## Future Enhancements
 - Personalizing customer's seat preference by asking them to choose either window or aisle seat.
 - Creating an agentic workflow that could autonomously search buses and book tickets based on user's preferences and constraints.
