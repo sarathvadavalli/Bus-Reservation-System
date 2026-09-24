@@ -19,7 +19,7 @@ f) <b>Booking history:</b> User can also view all the bookings made by him/her a
 ## Technologies Used
 * <b>Frontend:</b> HTML, CSS, JavaScript
 
-* <b>Backend:</b> Django framework
+* <b>Backend:</b> Django framework, Session-based authentication, Transactions and Concurrency
 
 * <b>Database:</b> MySQL for data storage and management
 
@@ -39,6 +39,7 @@ f) <b>Booking history:</b> User can also view all the bookings made by him/her a
                     python manage.py runserver
 
 ## Future Enhancements
-- Personalize customer's seat preference by asking them to choose either window or aisle seat.
+- Personalizing customer's seat preference by asking them to choose either window or aisle seat.
+- Creating an agentic workflow that could autonomously search buses and book tickets based on user's preferences and constraints.
 - Integration with a payment gateway to make secure online payments for ticket bookings.
-- Integration with SMS API for booking notifications.
+- Integration with an SMS API for booking notifications.
