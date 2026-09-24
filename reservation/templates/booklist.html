@@ -1,4 +1,25 @@
 {% extends 'base.html' %} {% block content %}
+<style>
+    #booking-tabs .booking-tab {
+        color: #495057 !important;
+        background-color: transparent;
+        border: 1px solid transparent;
+        border-bottom-color: #dee2e6;
+        font-weight: 600;
+    }
+
+    #booking-tabs .booking-tab:hover,
+    #booking-tabs .booking-tab:focus-visible {
+        color: #4f46c7 !important;
+        border-color: #e0e3ff #e0e3ff #dee2e6;
+    }
+
+    #booking-tabs .booking-tab.active {
+        color: #4f46c7 !important;
+        background-color: #fff;
+        border-color: #dee2e6 #dee2e6 #fff;
+    }
+</style>
 <div class="container my-5">
     {% for message in messages %} {% if message.tags %}
     <div class="alert alert-{{ message.tags }}">{{ message }}</div>
@@ -10,13 +31,13 @@
         <div class="card-body">
             <div class="container-fluid">
                 <div class="nav nav-tabs mb-3" id="booking-tabs" role="tablist">
-                    <button class="nav-link active" type="button" data-booking-filter="upcoming">
+                    <button class="nav-link booking-tab active" type="button" data-booking-filter="upcoming">
                         Upcoming <span class="badge bg-primary ms-1" id="upcoming-count">0</span>
                     </button>
-                    <button class="nav-link" type="button" data-booking-filter="past">
+                    <button class="nav-link booking-tab" type="button" data-booking-filter="past">
                         Past <span class="badge bg-secondary ms-1" id="past-count">0</span>
                     </button>
-                    <button class="nav-link" type="button" data-booking-filter="cancelled">
+                    <button class="nav-link booking-tab" type="button" data-booking-filter="cancelled">
                         Cancelled <span class="badge bg-danger ms-1" id="cancelled-count">0</span>
                     </button>
                 </div>

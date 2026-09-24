@@ -1,20 +1,253 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %} {% load static %} {% block content %}
 <style>
-    body{
-      background-image: url("https://th.bing.com/th/id/OIP.CGDpMDbWjFEKBL4NKIuQ8gHaE8?w=297&h=183&c=7&r=0&o=5&dpr=1.5&pid=1.7");
-      background-color:khaki;
-      background-repeat: no-repeat;
-      background-size: 56%;
-      background-position:50% -70%;
+    :root {
+        --ink: #142333;
+        --muted: #5b6b78;
+        --accent: #ef6c3b;
+        --accent-dark: #c9502d;
+        --surface: #f5f7f4;
+        --line: #dce4e1;
+    }
+
+    body {
+        background: var(--surface);
+        color: var(--ink);
+    }
+
+    .home-page {
+        overflow: hidden;
+    }
+
+    .home-hero {
+        min-height: 500px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        isolation: isolate;
+        background: #193b4a;
+    }
+
+    .home-hero-image {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        z-index: -2;
+    }
+
+    .home-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(10, 29, 40, .9) 0%, rgba(10, 29, 40, .64) 42%, rgba(10, 29, 40, .08) 100%);
+        z-index: -1;
+    }
+
+    .hero-content {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+        padding: 80px 24px;
+        color: #fff;
+    }
+
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 18px;
+        color: #ffd5a7;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+        content: "";
+        width: 28px;
+        height: 2px;
+        background: var(--accent);
+    }
+
+    .hero-content h2 {
+        max-width: 610px;
+        margin: 0 0 20px;
+        font-size: clamp(2.5rem, 5vw, 4.5rem);
+        font-weight: 700;
+        line-height: 1.02;
+        letter-spacing: -.04em;
+    }
+
+    .hero-content p {
+        max-width: 500px;
+        margin-bottom: 30px;
+        color: rgba(255, 255, 255, .84);
+        font-size: 1.08rem;
+        line-height: 1.7;
+    }
+
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .hero-actions .btn {
+        padding: 12px 22px;
+        border-radius: 4px;
+        font-weight: 700;
+    }
+
+    .btn-primary-custom {
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #fff;
+    }
+
+    .btn-primary-custom:hover {
+        border-color: var(--accent-dark);
+        background: var(--accent-dark);
+        color: #fff;
+    }
+
+    .btn-light-custom {
+        border: 1px solid rgba(255, 255, 255, .7);
+        color: #fff;
+    }
+
+    .btn-light-custom:hover {
+        background: #fff;
+        color: var(--ink);
+    }
+
+    .home-content {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+        padding: 54px 24px 70px;
+    }
+
+    .section-heading {
+        margin-bottom: 24px;
+    }
+
+    .section-heading h3 {
+        margin-bottom: 8px;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .section-heading p {
+        margin: 0;
+        color: var(--muted);
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .feature-item {
+        min-height: 150px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-top: 3px solid var(--accent);
+        background: #fff;
+    }
+
+    .feature-number {
+        display: block;
+        margin-bottom: 18px;
+        color: var(--accent);
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .12em;
+    }
+
+    .feature-item h4 {
+        margin-bottom: 8px;
+        font-size: 1.08rem;
+        font-weight: 700;
+    }
+
+    .feature-item p {
+        margin: 0;
+        color: var(--muted);
+        font-size: .94rem;
+        line-height: 1.55;
+    }
+
+    @media (max-width: 767px) {
+        .home-hero {
+            min-height: 560px;
+            align-items: flex-end;
+        }
+
+        .home-hero::after {
+            background: linear-gradient(0deg, rgba(10, 29, 40, .92) 0%, rgba(10, 29, 40, .4) 80%);
+        }
+
+        .hero-content {
+            padding: 56px 20px;
+        }
+
+        .hero-content h2 {
+            font-size: 2.7rem;
+        }
+
+        .home-content {
+            padding: 42px 20px 56px;
+        }
+
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
-<div class="containerpy">
-    <div class="card bg-gradient" style="width:56%; margin-left:22%; background-color:#55e94f">
-        <div class="card-body">
-            <h2 class="my-3 text-center" style="color:rgb(165, 42, 52)">Welcome to Bus Reservation System</h2>
+<main class="home-page">
+    <section class="home-hero">
+        <img class="home-hero-image" src="{% static 'Bus.jpeg' %}" alt="Bus travelling along a scenic road">
+        <div class="hero-content">
+            <span class="eyebrow">Travel made simple</span>
+            <h2>Every journey starts with a seat.</h2>
+            <p>Find a route, choose your seats, and book your next trip with confidence. A smoother way to get where you are going.</p>
+            <div class="hero-actions">
+                {% if user.is_authenticated %}
+                    <a class="btn btn-primary-custom" href="{% url 'findbus' %}">Find a bus</a>
+                    <a class="btn btn-light-custom" href="{% url 'seebookings' %}">View bookings</a>
+                {% else %}
+                    <a class="btn btn-primary-custom" href="{% url 'signin' %}">Find a bus</a>
+                    <a class="btn btn-light-custom" href="{% url 'signup' %}">Create an account</a>
+                {% endif %}
+            </div>
         </div>
-    </div>
-    <!-- <h3 style="position: fixed; bottom: 10px; width:100%; text-align: center; color: rgb(152, 47, 82)"> Book your tickets now to have a comfortable journey! </h3> -->
-</div>
+    </section>
+
+    <section class="home-content" aria-labelledby="why-book-heading">
+        <div class="section-heading">
+            <h3 id="why-book-heading">A better way to travel</h3>
+            <p>Everything you need for a comfortable booking experience.</p>
+        </div>
+        <div class="feature-grid">
+            <article class="feature-item">
+                <span class="feature-number">01 / SEARCH</span>
+                <h4>Routes that fit your day</h4>
+                <p>Search available buses by departure, destination, and date.</p>
+            </article>
+            <article class="feature-item">
+                <span class="feature-number">02 / CHOOSE</span>
+                <h4>Book with clarity</h4>
+                <p>Review the trip details and select the number of seats you need.</p>
+            </article>
+            <article class="feature-item">
+                <span class="feature-number">03 / GO</span>
+                <h4>Your plans, in one place</h4>
+                <p>Keep track of your bookings and travel details from your profile.</p>
+            </article>
+        </div>
+    </section>
+</main>
 {% endblock %}

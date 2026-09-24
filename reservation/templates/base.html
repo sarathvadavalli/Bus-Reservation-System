@@ -1,72 +1,378 @@
+{% load static %}
+
 <!doctype html>
 <html lang="en">
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <title>Bus Reservation System in Django Framework</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'menu.css' %}?v={{ STATIC_VERSION }}">
-    <style>
-        .options {
-            display: flex;
-            gap: 10px; /* Adjust the gap between links as needed */
-            margin-left: 480px;
-        }
-        .dropbtn {
-            background-color: yellow;
-            color: black;
-        }
-        .dropdown:hover .dropbtn {
-            background-color: orange;
-            
-          }
-    </style>
-    <!-- jQuery first, then Bootstrap JS -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+        crossorigin="anonymous"
+    >
 
-    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script> -->
+    <title>Bus Reservation System</title>
+
+    <style>
+        /* =========================
+           Navbar
+        ========================= */
+
+        .main-navbar {
+            background: linear-gradient(135deg, #4f46c7, #667eea);
+            padding: 12px 0;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Brand */
+
+        .navbar-brand {
+            color: white !important;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        /* Navigation */
+
+        .navbar-nav {
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 9px 14px !important;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        /* Right-side buttons */
+
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 15px;
+        }
+
+        .login-btn {
+            color: white;
+            text-decoration: none;
+            padding: 8px 17px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: 0.25s ease;
+        }
+
+        .login-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .register-btn {
+            color: #4f46c7;
+            background: white;
+            text-decoration: none;
+            padding: 8px 17px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+
+        .register-btn:hover {
+            color: #4f46c7;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        /* =========================
+           Profile Dropdown
+        ========================= */
+
+        .profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-image {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .profile-dropdown .dropdown-toggle {
+            color: white !important;
+            font-weight: 500;
+            border: none;
+            background: transparent;
+            padding: 8px 10px;
+        }
+
+        .profile-dropdown .dropdown-toggle:focus {
+            box-shadow: none;
+        }
+
+        .profile-dropdown .dropdown-menu {
+            margin-top: 10px;
+            border: none;
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 190px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .profile-dropdown .dropdown-item {
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-weight: 500;
+            transition: 0.2s ease;
+        }
+
+        .profile-dropdown .dropdown-item:hover {
+            background: #f1f3ff;
+            color: #4f46c7;
+        }
+
+        .logout-item {
+            color: #dc3545 !important;
+        }
+
+        .logout-item:hover {
+            background: #fff1f2 !important;
+            color: #dc3545 !important;
+        }
+
+        /* Mobile */
+
+        .navbar-toggler {
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+        }
+
+        .navbar-toggler-icon {
+            filter: brightness(0) invert(1);
+        }
+
+        @media (max-width: 991px) {
+
+            .navbar-nav {
+                align-items: flex-start;
+                padding-top: 15px;
+            }
+
+            .auth-buttons {
+                margin-left: 0;
+                margin-top: 10px;
+                padding-bottom: 10px;
+            }
+
+            .profile-menu {
+                padding-top: 10px;
+            }
+
+            .profile-dropdown .dropdown-menu {
+                box-shadow: none;
+            }
+        }
+    </style>
 </head>
+
 <body>
-<nav class="navbar navbar-expand-lg navbar-light" style="background-color:#5c65cd">
+
+<nav class="navbar navbar-expand-lg main-navbar">
+
     <div class="container">
-        <h1 class="navbar-brand">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="{% url 'home' %}" style = "text-decoration: none; color: white;">Bus Reservation System</a></h1>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
-                aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+
+        <!-- Brand -->
+        <a href="{% url 'home' %}" class="navbar-brand">
+
+            <span class="brand-icon">
+                🚌
+            </span>
+
+            <span>Bus Reservation</span>
+
+        </a>
+
+
+        <!-- Mobile menu button -->
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#mainNavbar"
+            aria-controls="mainNavbar"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+        >
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-                {% if user.is_authenticated %}
-                    <div class="profile">
-                        <img src="{% static 'profile.png' %}" alt="User Profile Picture">
-                        <div class="dropdown">
-                          <button class="dropbtn">Menu</button>
-                          <div class="dropdown-content"> 
-                            <a href="{% url 'viewprofile' %}">Profile</a>
-                            <a href="{% url 'findbus' %}">Find Buses</a>
-                            <a href="{% url 'seebookings' %}">See Bookings</a>
-                            <a href= "{% url 'signout' %}">Logout</a>
-                          </div>
-                        </div>
-                      </div>
-                    <!-- <h2 style = "top: 90%;">Hello {{user}}</h2> -->
-                {% else %}
-                    <div class="navbar-options options">
-                        <a href="{% url 'signup' %}">Register</a>
-                        <a href="{% url 'signin' %}">Login</a>
-                    </div>
-                {% endif %}
-            </div>
+
+
+        <!-- Navigation -->
+        <div class="collapse navbar-collapse" id="mainNavbar">
+
+            {% if user.is_authenticated %}
+
+                <ul class="navbar-nav ms-auto">
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'findbus' %}">
+                            Find Buses
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'seebookings' %}">
+                            My Bookings
+                        </a>
+                    </li>
+
+                    <!-- Profile -->
+                    <li class="nav-item dropdown profile-dropdown">
+
+                        <a
+                            class="nav-link dropdown-toggle profile-menu"
+                            href="#"
+                            id="profileDropdown"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                        >
+
+                            <img
+                                src="{% static 'profile.png' %}"
+                                alt="Profile"
+                                class="profile-image"
+                            >
+
+                            <span>{{ user.username }}</span>
+
+                        </a>
+
+                        <ul
+                            class="dropdown-menu dropdown-menu-end"
+                            aria-labelledby="profileDropdown"
+                        >
+
+                            <li>
+                                <a
+                                    class="dropdown-item"
+                                    href="{% url 'viewprofile' %}"
+                                >
+                                    👤 &nbsp; Profile
+                                </a>
+                            </li>
+
+                            <li>
+                                <a
+                                    class="dropdown-item"
+                                    href="{% url 'findbus' %}"
+                                >
+                                    🚌 &nbsp; Find Buses
+                                </a>
+                            </li>
+
+                            <li>
+                                <a
+                                    class="dropdown-item"
+                                    href="{% url 'seebookings' %}"
+                                >
+                                    🎫 &nbsp; My Bookings
+                                </a>
+                            </li>
+
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+
+                            <li>
+                                <a
+                                    class="dropdown-item logout-item"
+                                    href="{% url 'signout' %}"
+                                >
+                                    ↪ &nbsp; Logout
+                                </a>
+                            </li>
+
+                        </ul>
+
+                    </li>
+
+                </ul>
+
+            {% else %}
+
+                <div class="auth-buttons ms-auto">
+
+                    <a
+                        href="{% url 'signin' %}"
+                        class="login-btn"
+                    >
+                        Login
+                    </a>
+
+                    <a
+                        href="{% url 'signup' %}"
+                        class="register-btn"
+                    >
+                        Register
+                    </a>
+
+                </div>
+
+            {% endif %}
+
         </div>
+
     </div>
+
 </nav>
+
+
+<!-- Page Content -->
 
 {% block content %}
 {% endblock %}
+
+
+<!-- Bootstrap JS -->
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+    crossorigin="anonymous">
+</script>
 
 </body>
 </html>
