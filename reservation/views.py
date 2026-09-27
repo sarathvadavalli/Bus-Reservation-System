@@ -134,9 +134,9 @@ def findbus(request):
             return render(request, 'list.html', {'buses': scheduled_buses})
         else:
             #context['data'] = request.POST
-            response_data = {'Message': "No available Bus Schedule1 for entered Route and Date"}
+            response_data = {'Message': "No available Bus Schedule for entered Route and Date"}
             # cache.set(cache_key, response_data, timeout=400)
-            context['error'] = "No available Bus Schedule1 for entered Route and Date"
+            context['error'] = "No available Bus Schedule for entered Route and Date"
             return render(request, 'findbus.html', context)
     
     return render(request, 'findbus.html')
@@ -200,6 +200,8 @@ def bookings(request):
                 # (Optional) update rem for display only
                 schedule.rem = schedule.rem - seats_r
                 schedule.save()
+
+                print(selected_seats)
 
             return render(request, 'bookings.html', {
                 'book': booking,
