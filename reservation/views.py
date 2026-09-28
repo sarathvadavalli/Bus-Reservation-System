@@ -1,5 +1,5 @@
-from datetime import datetime
-import json
+from datetime import datetime, timedelta
+import time
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
@@ -11,9 +11,9 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db import IntegrityError, connection
 from django.core.cache import cache
-from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction, IntegrityError
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 
 def home(request):
@@ -22,8 +22,8 @@ def home(request):
 
 def displaybus(request, schedule_id):
     try:
-        schedule = Schedule1.objects.select_related('bus_id').get(schedule_id=schedule_id)
-        schedule.id = schedule.bus_id.bus_id
+        schedule = Schedule1.objects.select_related('bus').get(schedule_id=schedule_id)
+        schedule.id = schedule.bus.bus_id
     except Schedule1.DoesNotExist:
         return render(request, 'error.html', {'message': 'Bus not found'})
     
@@ -102,8 +102,7 @@ def findbus(request):
         source = request.POST.get('source')
         destination = request.POST.get('destination')
         date_str = request.POST.get('date')
-        print(date_str)
-
+        
         if date_str is None or date_str == '':
            return render(request, 'error.html', {'message': 'Date is required'})
         try:
@@ -116,7 +115,7 @@ def findbus(request):
         # cached_data = cache.get(cache_key)
 
         print("Fetching from database")
-        scheduled_buses = Schedule1.objects.select_related('bus_id').filter(
+        scheduled_buses = Schedule1.objects.select_related('bus').filter(
             source=source,
             dest=destination,
             date=date
@@ -147,11 +146,10 @@ def bookings(request):
     context = {}
     if request.method == 'POST':
         sch_id = request.POST.get('schedule_id')
-        print(sch_id)
         seats_r = int(request.POST.get('no_seats'))
-        schedule = Schedule1.objects.select_related('bus_id').get(schedule_id=sch_id)
-        bus = schedule.bus_id
-        userid_r = request.user.id
+        schedule = Schedule1.objects.select_related('bus').get(schedule_id=sch_id)
+        bus = schedule.bus
+        user = request.user
         try:
             with transaction.atomic():
                 # Step 1: Get already booked seats
@@ -170,6 +168,8 @@ def bookings(request):
                     if seat not in booked_seats
                 ]
 
+                print(available_seats)
+
                 if len(available_seats) < seats_r:
                     return render(request, 'findbus.html', {
                         "error": "Sorry select fewer number of seats"
@@ -178,11 +178,15 @@ def bookings(request):
                 # Step 4: Select seats
                 selected_seats = available_seats[:seats_r]
 
+                print(selected_seats)
+
+                time.sleep(5)
+
                 # Step 5: Create booking
                 price_r = seats_r * bus.price
                 booking = Book.objects.create(
-                    userid=userid_r,
-                    schedule_id=sch_id,
+                    user=user,
+                    schedule=schedule,
                     nos=seats_r,
                     price=price_r,
                     time=datetime.now(),
@@ -201,8 +205,6 @@ def bookings(request):
                 schedule.rem = schedule.rem - seats_r
                 schedule.save()
 
-                print(selected_seats)
-
             return render(request, 'bookings.html', {
                 'book': booking,
                 'bus': schedule,
@@ -212,6 +214,11 @@ def bookings(request):
         except IntegrityError:
             return render(request, 'findbus.html', {
                 "error": "Some seats were just booked by another user. Please try again."
+            })
+        except Exception as e:
+            print(e)
+            return render(request, 'findbus.html', {
+                "error": e
             })
         
     else:
@@ -224,25 +231,41 @@ def cancellings(request):
     if request.method == 'POST':
         id_r = request.POST.get('booking_id')
         try:
-            book = Book.objects.get(bookid=id_r)
-            if(book.status == 'CANCELLED'):
-                context["error"] = "Sorry you have already cancelled that booking"
-                return render(request, 'booklist.html', context)
+            book = Book.objects.select_related('schedule').get(
+                bookid=id_r,
+                user=request.user,
+            )
+        except Book.DoesNotExist:
+            context['error'] = "Sorry You have not booked that bus"
+            return render(request, 'error.html', context)
 
-            schedule_id = book.schedule_id
-            schedule = Schedule1.objects.get(schedule_id=schedule_id)
-            schedule.rem = schedule.rem + book.nos
-            schedule.save()
+        if book.status.upper() in ('C', 'CANCELLED'):
+            context['error'] = "Sorry, you have already cancelled that booking"
+            return render(request, 'error.html', context)
 
-            # Schedule1.objects.filter(schedule_id=schedule.schedule_id).update(rem=rem_r)
-            #nos_r = book.nos - seats_r
-            Book.objects.filter(bookid=id_r).update(status='CANCELLED')
-            Book.objects.filter(bookid=id_r).update(nos=0)
+        schedule = book.schedule
+        departure_datetime = timezone.make_aware(
+            datetime.combine(schedule.date, schedule.departure_time),
+            timezone.get_current_timezone(),
+        )
+        now = timezone.now()
+        if now >= departure_datetime:
+            context['error'] = "Journey already completed"
+            return render(request, 'error.html', context)
+        if now >= departure_datetime - timedelta(hours=6):
+            context['error'] = "Sorry, the booking can't be cancelled"
+            return render(request, 'error.html', context)
+
+        with transaction.atomic():
+            schedule.rem += int(book.nos)
+            schedule.save(update_fields=['rem'])
+            Seat.objects.filter(book_id=book).delete()
+            book.status = 'CANCELLED'
+            book.nos = 0
+            book.save(update_fields=['status', 'nos'])
+
             messages.success(request, "Booked Bus has been cancelled successfully. Your amount will be refunded within 2-3 days.")
             return redirect(seebookings)
-        except Book.DoesNotExist:
-            context["error"] = "Sorry You have not booked that bus"
-            return render(request, 'error.html', context)
     else:
         return render(request, 'findbus.html')
 
@@ -250,29 +273,43 @@ def cancellings(request):
 @login_required(login_url='signin')
 def seebookings(request):
     context = {}
-    id_r = request.user.id
-    name_r = request.user.username
-    book_list = Book.objects.filter(userid=id_r)
+    user = request.user
+    name_r = user.username
+    book_list = list(
+        Book.objects.filter(user=request.user).select_related('schedule__bus')
+    )
 
+    if not book_list:
+        return render(request, 'findbus.html', {"error": "Sorry no buses booked"})
+
+    data = []
     for book in book_list:
-        schedule = Schedule1.objects.get(schedule_id=book.schedule_id)
-        book.id = schedule.schedule_id
-        bus = schedule.bus_id
-        book.bus_name = bus.bus_name
-        book.source = schedule.source
-        book.dest = schedule.dest
-        book.date = schedule.date
-        book.arrival_time = schedule.arrival_time
-        book.departure_time = schedule.departure_time
+        s = book.schedule
+        book.schedule_id = s.schedule_id
+        book.bus_name = s.bus.bus_name
+        book.source = s.source
+        book.dest = s.dest
+        book.date = s.date
+        book.arrival_time = s.arrival_time
+        book.departure_time = s.departure_time
 
-    if book_list:
-        context = {'book_list': book_list, 
-                'book_list_json': json.dumps(list(book_list.values()), cls=DjangoJSONEncoder),
-                'name': name_r}
-        return render(request, 'booklist.html', context)
-    else:
-        context["error"] = "Sorry no buses booked"
-        return render(request, 'findbus.html', context)
+        data.append({
+            'bookid': book.bookid,
+            'status': book.status,
+            'bus_name': book.bus_name,
+            'source': s.source,
+            'dest': s.dest,
+            'date': s.date,
+            'departure_time': s.departure_time,
+            'arrival_time': s.arrival_time,
+        })
+
+    context = {
+        'book_list': book_list,
+        'book_list_json': data, 
+        'name': request.user.username,
+    }
+    return render(request, 'booklist.html', context)
 
 
 def signup(request):

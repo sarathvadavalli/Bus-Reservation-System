@@ -62,7 +62,7 @@
 <body>
       <div class="bus-container">
             <div class="bus-header">
-                  <h1>{{ bus.bus_id.bus_name }}</h1>
+                  <h1>{{ bus.bus.bus_name }}</h1>
             </div>
             
             <div class="bus-detail">
@@ -97,7 +97,7 @@
             
             <div class="bus-detail">
                   <span class="label">Capacity:</span>
-                  <span class="value">{{ bus.bus_id.capacity }}</span>
+                  <span class="value">{{ bus.bus.capacity }}</span>
             </div>
             
             <div class="bus-detail">
@@ -107,7 +107,7 @@
             
             <div class="bus-detail">
                   <span class="label">Price:</span>
-                  <span class="price">₹{{ bus.bus_id.price }}</span>
+                  <span class="price">₹{{ bus.bus.price }}</span>
             </div>
             
             <div class="action-buttons">
@@ -129,7 +129,7 @@
                   <h3 style="margin-top:0;">Book Seats</h3>
                   <p>Available seats: <strong id="availableSeats">{{ bus.rem }}</strong></p>
                   <label for="no_seats_input">Number of seats</label>
-                  <input id="no_seats_input" type="number" min="1" max="{{ bus.rem }}" price = "{{ bus.bus_id.price }}" value="1" style="width:100%; padding:8px; margin:8px 0;">
+                  <input id="no_seats_input" type="number" min="1" max="{{ bus.rem }}" price = "{{ bus.bus.price }}" value="1" style="width:100%; padding:8px; margin:8px 0;">
                   <div style="margin-top:10px;">
                        <strong>Total Price: ₹<span id="totalPrice">0</span></strong>
                   </div>

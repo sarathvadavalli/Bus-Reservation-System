@@ -81,28 +81,42 @@
         </div>
     </div>
     <div class="row mt-3 justify-content-center">
-        <div class="col-lg-5 col-md-7 col-sm-10 col-xs-12">
-            <div class="card rounded-0">
+        <div class="col-lg-5 col-md-7 col-sm-10 col-12">
+            <div class="card rounded-0 shadow-sm">
                 <div class="card-header">
                     <div class="card-title h3 mb-0">Cancel Booking Form</div>
                 </div>
+
                 <div class="card-body">
                     <div class="container-fluid">
+
+                        <!-- Cancellation policy note -->
+                        <div class="alert alert-warning d-flex align-items-start rounded-0 border-0 border-start border-warning border-4 py-2 mb-3" role="note">
+                            <i class="bi bi-info-circle-fill me-2 mt-1"></i>
+                            <div class="small">
+                                <strong>Cancellation policy:</strong>
+                                Bookings can be cancelled only up to
+                                <strong>6 hours before</strong> the departure time.
+                            </div>
+                        </div>
+
                         <form action="{% url 'cancellings' %}" method="post" id="cancel-form">
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label for="booking_id" class="control-label">Booking ID</label>
-                                <input name='booking_id' class="form-control" type="number" id="booking_id">
+                                <input name="booking_id" class="form-control" type="number" id="booking_id" required>
                             </div>
+
                             {% if error %}
                             <div class="alert alert-danger">
-                                {{error}}
+                                {{ error }}
                             </div>
                             {% endif %}
                             <div class="alert alert-danger d-none" id="cancel-error"></div>
                         </form>
                     </div>
                 </div>
+
                 <div class="card-footer text-center">
                     <button class="btn btn-sm rounded-0 btn-danger w-100" form="cancel-form">Cancel Booking</button>
                 </div>
@@ -111,7 +125,9 @@
     </div>
 </div>
 
-    <script>
+   {{ book_list_json|json_script:"book-data" }}
+
+<script>
     (function() {
         const tabButtons = document.querySelectorAll('[data-booking-filter]');
         const bookingRows = document.querySelectorAll('.booking-row');
@@ -197,30 +213,49 @@
         showTab('upcoming');
     })();
 
-    document.getElementById('cancel-form').addEventListener('submit', function(e) {
+    const bookList = JSON.parse(document.getElementById('book-data').textContent);
+    const form = document.getElementById('cancel-form');
+    const errDiv = document.getElementById('cancel-error');
+
+    function showError(msg) {
+        errDiv.textContent = msg;
+        errDiv.classList.remove('d-none');
+    }
+
+    form.addEventListener('submit', function (e) {
         e.preventDefault();
-        
-        const bookingId = document.getElementById('booking_id').value;
-        const bookList = JSON.parse('{{ book_list_json|escapejs }}');;
-        
-        const booking = bookList.find(b => b.bookid == bookingId);
-        
+        errDiv.classList.add('d-none');
+
+        const bookingId = document.getElementById('booking_id').value.trim();
+        const booking = bookList.find(b => String(b.bookid) === bookingId);
+
         if (!booking) {
-            alert('Booking ID not found');
+            showError('Booking ID not found');
             return;
         }
-        
-        // console.log(booking.id, booking.status);
-        if (['C', 'CANCELLED'].includes(booking.status.toUpperCase())) {
-            const errDiv = document.getElementById('cancel-error');
-            errDiv.textContent = 'Booking is already cancelled!';
-            errDiv.classList.remove('d-none');            
+
+        if (['C', 'CANCELLED'].includes(String(booking.status).toUpperCase())) {
+            showError('Booking is already cancelled!');
             return;
         }
-        
-        this.submit();
+
+        const departure = new Date(`${booking.date}T${booking.departure_time}`);
+        const now = new Date();
+        const cutoff = new Date(departure.getTime() - 6 * 60 * 60 * 1000);
+
+        if (now >= departure) {
+            showError('Journey already completed!');
+            return;
+        }
+        if (now >= cutoff) {
+            showError("Sorry, the booking can't be cancelled");
+            return;
+        }
+
+        form.submit();
     });
-    </script>
+
+</script>
 
 
 {% endblock %}

@@ -27,14 +27,14 @@
                     {% for row in buses %}
                     <tr>
                         <td class="px-2 py-1 align-middle">{{forloop.counter}}</td>
-                        <td class="px-2 py-1 align-middle">{{row.bus_id.bus_name}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.bus.bus_name}}</td>
                         <td class="px-2 py-1 align-middle">{{row.source}}</td>
                         <td class="px-2 py-1 align-middle">{{row.dest}}</td>
                         <td class="px-2 py-1 align-middle">{{row.rem}}</td>
                         <td class="px-2 py-1 align-middle">{{row.date}}</td>
                         <td class="px-2 py-1 align-middle">{{row.arrival_time}}</td>
                         <td class="px-2 py-1 align-middle">{{row.departure_time}}</td>
-                        <td class="px-2 py-1 align-middle">{{row.bus_id.price}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.bus.price}}</td>
                         <td class="px-2 py-1 align-middle text-center">
                             <a href="{% url 'displaybus' row.schedule_id %}" class="btn btn-secondary btn-sm rounded-0">View</a>
                         </td>
