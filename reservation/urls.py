@@ -21,6 +21,7 @@ urlpatterns = [
     path('', views.home, name="home"),
     path('profile/', views.viewprofile, name="viewprofile"),
     path('findbus/', views.findbus, name="findbus"),
+    path('schedule/<int:schedule_id>/seats/', views.refresh_schedule_seats, name="refresh_schedule_seats"),
     path('displaybus/<int:schedule_id>/', views.displaybus, name="displaybus"),
     path('book/', views.bookings, name="bookings"),
     path('cancellings/', views.cancellings, name="cancellings"),
@@ -28,5 +29,4 @@ urlpatterns = [
     path('signup/', views.signup, name="signup"),
     path('signin/', views.signin, name="signin"),
     path('signout/', views.signout, name="signout"),
-    path('delete/', views.deleteAll, name="deleteall"),
 ]
