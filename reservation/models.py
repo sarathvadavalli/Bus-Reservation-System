@@ -77,7 +77,7 @@ class SeatInventory(models.Model):
         ]
     
     def __str__(self):
-        return str(self.schedule_id) + " - " + str(self.seatno) 
+        return str(self.schedule_id) + " - " + str(self.seat_no) 
 
     
 class Book(models.Model):
@@ -85,6 +85,7 @@ class Book(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     schedule = models.ForeignKey(Schedule1, on_delete=models.CASCADE, null=True, blank=True)
     nos = models.DecimalField(decimal_places=0, max_digits=2)
+    seats = models.CharField(max_length=50, default="")
     price = models.DecimalField(decimal_places=2, max_digits=6)
     time = models.DateTimeField()
     status = models.CharField(
@@ -103,19 +104,18 @@ class Book(models.Model):
         return str(self.bookid) + " - " + str(self.user) + " - " + str(self.schedule)
     
 
-class Seat(models.Model):
-    seat_id = models.AutoField(primary_key=True)
-    schedule_id = models.ForeignKey(Schedule1, on_delete=models.CASCADE)
-    book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
-    seat_no = models.CharField(max_length=5)
-    # status = models.CharField(max_length=20, default='AVAILABLE')
+# class Seat(models.Model):
+#     seat_id = models.AutoField(primary_key=True)
+#     schedule_id = models.ForeignKey(Schedule1, on_delete=models.CASCADE)
+#     book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
+#     seat_no = models.CharField(max_length=5)
 
-    class Meta:
-        verbose_name_plural = "List of Seats"
-        constraints = [ models.UniqueConstraint(
-                            fields=['schedule_id', 'seat_no'], name='unique_seat_combination'
-                        )
-                    ]
+#     class Meta:
+#         verbose_name_plural = "List of Seats"
+#         constraints = [ models.UniqueConstraint(
+#                             fields=['schedule_id', 'seat_no'], name='unique_seat_combination'
+#                         )
+#                     ]
 
-    def __str__(self):
-        return str(self.schedule_id) + " - " + str(self.seat_no)
+#     def __str__(self):
+#         return str(self.schedule_id) + " - " + str(self.seat_no)
