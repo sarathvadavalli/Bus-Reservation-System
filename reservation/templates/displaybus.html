@@ -185,6 +185,11 @@
                   return;
             }
 
+            if (seats > 6) {
+                  showError("You can book a maximum of 6 seats at a time");
+                  return;
+            }
+
             hiddenSeatInput.value = seats;
             bookingForm.submit();
             };

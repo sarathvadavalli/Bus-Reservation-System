@@ -27,14 +27,20 @@
                     {% for row in buses %}
                     <tr>
                         <td class="px-2 py-1 align-middle">{{forloop.counter}}</td>
-                        <td class="px-2 py-1 align-middle">{{row.bus.bus_name}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.bus_name}}</td>
                         <td class="px-2 py-1 align-middle">{{row.source}}</td>
                         <td class="px-2 py-1 align-middle">{{row.dest}}</td>
-                        <td class="px-2 py-1 align-middle">{{row.rem}}</td>
+                        <td class="px-2 py-1 align-middle">
+                            <span id="seats-{{row.schedule_id}}">{{row.rem}}</span>
+                            <button type="button" class="btn btn-outline-secondary btn-sm ms-1 refresh-seats"
+                                data-url="{% url 'refresh_schedule_seats' row.schedule_id %}"
+                                data-seats-id="seats-{{row.schedule_id}}" aria-label="Refresh remaining seats"
+                                title="Refresh remaining seats">&#8635;</button>
+                        </td>
                         <td class="px-2 py-1 align-middle">{{row.date}}</td>
                         <td class="px-2 py-1 align-middle">{{row.arrival_time}}</td>
                         <td class="px-2 py-1 align-middle">{{row.departure_time}}</td>
-                        <td class="px-2 py-1 align-middle">{{row.bus.price}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.price}}</td>
                         <td class="px-2 py-1 align-middle text-center">
                             <a href="{% url 'displaybus' row.schedule_id %}" class="btn btn-secondary btn-sm rounded-0">View</a>
                         </td>
@@ -44,39 +50,24 @@
             </div>
         </div>
     </div>
-    <!-- <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8 col-sm-10 col-xs-12">
-            <div class="card rounded-0">
-                <div class="card-header">
-                    <div class="card-title h3 mb-3">Booking Form</div>
-                </div>
-                <div class="card-body">
-                    <div class="container-fluid">
-                        <form action="{% url 'bookings' %}" method="post" id="book-form">
-                            <h3>Choose bus to book</h3>
-                            {% csrf_token %}
-                            <div class="mb-3">
-                                <label for="bus_id" class="control-label">Enter Bus ID</label>
-                                <input name='bus_id' class="form-control rounded-0" type="number" id="bus_id" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="no_seats" class="control-label">Number of Seat/s</label>
-                                <input name='no_seats' class="form-control rounded-0" id="no_seats" type="number" required>
-                            </div>
-                            {% if error %}
-                            <div class="alert alert-danger">
-                                {{error}}
-                            </div>
-                            {% endif %}
-                        </form>
-                    </div>
-                </div>
-                <div class="card-footer text-center">
-                    <button class="btn btn-sm rounded-0 btn-primary w-100" form="book-form">Book Now</button>
-                </div>
-            </div>
-        </div>
-    </div> -->
 </div>
+
+<script>
+    document.querySelectorAll('.refresh-seats').forEach((button) => {
+        button.addEventListener('click', async () => {
+            button.disabled = true;
+            try {
+                const response = await fetch(button.dataset.url);
+                if (!response.ok) throw new Error('Unable to refresh seats');
+                const data = await response.json();
+                document.getElementById(button.dataset.seatsId).textContent = data.remaining_seats;
+            } catch (error) {
+                button.title = 'Could not refresh remaining seats';
+            } finally {
+                button.disabled = false;
+            }
+        });
+    });
+</script>
 
 {% endblock %}
