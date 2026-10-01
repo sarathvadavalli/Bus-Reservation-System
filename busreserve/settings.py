@@ -48,7 +48,6 @@ ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1')
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -92,7 +91,7 @@ TEMPLATES = [
 #WSGI_APPLICATION = 'busreserve.wsgi.application'
 
 
-# Database
+# Database configuration
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
@@ -126,15 +125,45 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Session configuration
 SESSION_COOKIE_AGE = int(os.getenv('SESSION_COOKIE_AGE', '1800'))
-# SESSION_SAVE_EVERY_REQUEST = True
 
+
+# Redis Cache configuration
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
     }
 }
+
+
+# Celery configuration
+CELERY_BROKER_URL = os.getenv(
+    'CELERY_BROKER_URL',
+    os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0'),
+)
+CELERY_TASK_IGNORE_RESULT = True
+
+
+# Email configuration
+EMAIL_BACKEND = os.getenv(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.smtp.EmailBackend'
+    if os.getenv('EMAIL_HOST')
+    else 'django.core.mail.backends.console.EmailBackend',
+)
+
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = env_bool('EMAIL_USE_TLS', True)
+EMAIL_USE_SSL = env_bool('EMAIL_USE_SSL', False)
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv(
+    'DEFAULT_FROM_EMAIL',
+    EMAIL_HOST_USER or 'reservation@localhost',
+)
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -156,6 +185,7 @@ STATICFILES_DIRS = [ os.path.join(BASE_DIR, 'reservation/static') ]
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATIC_VERSION = '1.0'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 

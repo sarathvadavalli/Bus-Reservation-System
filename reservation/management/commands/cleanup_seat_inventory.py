@@ -1,13 +1,13 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from reservation.models import SeatInventory, Schedule1
+from reservation.models import SeatInventory, Schedule
 
 
 class Command(BaseCommand):
     help = "Delete SeatInventory for completed schedules"
 
     def handle(self, *args, **kwargs):
-        completed_schedules = Schedule1.objects.filter(
+        completed_schedules = Schedule.objects.filter(
             departure_time__lt=timezone.now()
         )
 
