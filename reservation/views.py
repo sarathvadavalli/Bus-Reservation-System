@@ -3,7 +3,7 @@ import time
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
-from .models import Buses, Schedule1, Book, Profile, SeatInventory
+from .models import Buses, Schedule, Book, Profile, SeatInventory
 from django.db.models import F
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -22,9 +22,9 @@ def home(request):
 
 def displaybus(request, schedule_id):
     try:
-        schedule = Schedule1.objects.select_related('bus').get(schedule_id=schedule_id)
+        schedule = Schedule.objects.select_related('bus').get(schedule_id=schedule_id)
         schedule.id = schedule.bus.bus_id
-    except Schedule1.DoesNotExist:
+    except Schedule.DoesNotExist:
         return render(request, 'error.html', {'message': 'Bus not found'})
     
     return render(request, 'displaybus.html', {'bus': schedule})
@@ -105,23 +105,25 @@ def findbus(request):
         scheduled_buses = cache.get(cache_key)
         if scheduled_buses is None:
             scheduled_buses = list(
-                Schedule1.objects.select_related('bus').filter(
+                Schedule.objects.select_related('bus').filter(
                     source=source,
                     dest=destination,
-                    date=date,
+                    arrival_datetime__date=date,
                 ).annotate(
                     bus_name=F('bus__bus_name'),
                     price=F('bus__price'),
                 ).values(
-                    'schedule_id', 'bus_name', 'source', 'dest', 'date',
-                    'arrival_time', 'departure_time', 'price',
+                    'schedule_id', 'bus_name', 'source', 'dest',
+                    'arrival_datetime', 'departure_datetime', 'price',
                 )
             )
             cache.set(cache_key, scheduled_buses, timeout=1800)
+        else:
+            print("Serving from the cache..")
 
         if scheduled_buses:
             remaining_by_schedule = dict(
-                Schedule1.objects.filter(
+                Schedule.objects.filter(
                     schedule_id__in=[bus['schedule_id'] for bus in scheduled_buses]
                 ).values_list('schedule_id', 'rem')
             )
@@ -138,7 +140,7 @@ def findbus(request):
 
 @login_required(login_url='signin')
 def refresh_schedule_seats(request, schedule_id):
-    schedule = get_object_or_404(Schedule1, schedule_id=schedule_id)
+    schedule = get_object_or_404(Schedule, schedule_id=schedule_id)
     return JsonResponse({'remaining_seats': schedule.rem})
 
 
@@ -148,7 +150,7 @@ def bookings(request):
     if request.method == 'POST':
         sch_id = request.POST.get('schedule_id')
         seats_r = int(request.POST.get('no_seats'))
-        schedule = Schedule1.objects.select_related('bus').get(schedule_id=sch_id)
+        schedule = Schedule.objects.select_related('bus').get(schedule_id=sch_id)
         bus = schedule.bus
         user = request.user
         try:
@@ -186,7 +188,7 @@ def bookings(request):
                 schedule.rem = schedule.rem - seats_r
                 schedule.save()
 
-            return render(request, 'bookings.html', {
+            return render(request, 'booking.html', {
                 'book': booking,
                 'bus': schedule,
                 'seats': selected_seats
@@ -225,10 +227,7 @@ def cancellings(request):
             return render(request, 'error.html', context)
 
         schedule = book.schedule
-        departure_datetime = timezone.make_aware(
-            datetime.combine(schedule.date, schedule.departure_time),
-            timezone.get_current_timezone(),
-        )
+        departure_datetime = schedule.departure_datetime
         now = timezone.now()
         if now >= departure_datetime:
             context['error'] = "Journey already completed"
@@ -275,9 +274,8 @@ def seebookings(request):
         book.bus_name = s.bus.bus_name
         book.source = s.source
         book.dest = s.dest
-        book.date = s.date
-        book.arrival_time = s.arrival_time
-        book.departure_time = s.departure_time
+        book.arrival_datetime = s.arrival_datetime
+        book.departure_datetime = s.departure_datetime
 
         data.append({
             'bookid': book.bookid,
@@ -285,9 +283,8 @@ def seebookings(request):
             'bus_name': book.bus_name,
             'source': s.source,
             'dest': s.dest,
-            'date': s.date,
-            'departure_time': s.departure_time,
-            'arrival_time': s.arrival_time,
+            'departure_datetime': s.departure_datetime,
+            'arrival_datetime': s.arrival_datetime,
         })
 
     context = {

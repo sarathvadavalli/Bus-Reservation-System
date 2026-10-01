@@ -51,15 +51,14 @@
                             <th class="p-1 text-center">DESTINATION</th>
                             <th class="p-1 text-center">NUM OF SEATS</th>
                             <th class="p-1 text-center">PRICE</th>
-                            <th class="p-1 text-center">DATE</th>
-                            <th class="p-1 text-center">ARRIVAL TIME</th>
-                            <th class="p-1 text-center">DEPARTURE TIME</th>
+                            <th class="p-1 text-center">ARRIVAL</th>
+                            <th class="p-1 text-center">DEPARTURE</th>
                             <th class="p-1 text-center">STATUS</th>
                         </tr>
                     </thead>
 
                     {% for row in book_list %}
-                    <tr class="booking-row" data-status="{{ row.status }}" data-booking-date="{{ row.date|date:'Y-m-d' }}">
+                    <tr class="booking-row" data-status="{{ row.status }}" data-departure-datetime="{{ row.departure_datetime|date:'c' }}">
                         <td class="px-2 py-1 align-middle">{{row.bookid}}</td>
                         <td class="px-2 py-1 align-middle">{{name}}</td>
                         <td class="px-2 py-1 align-middle">{{row.bus_name}}</td>
@@ -67,9 +66,8 @@
                         <td class="px-2 py-1 align-middle">{{row.dest}}</td>
                         <td class="px-2 py-1 align-middle">{{row.nos}}</td>
                         <td class="px-2 py-1 align-middle">{{row.price}}</td>
-                        <td class="px-2 py-1 align-middle">{{row.date}}</td>
-                        <td class="px-2 py-1 align-middle">{{row.arrival_time}}</td>
-                        <td class="px-2 py-1 align-middle">{{row.departure_time}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.arrival_datetime}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.departure_datetime}}</td>
                         <td class="px-2 py-1 align-middle">{{row.status}}</td>
                     </tr>
                     {% endfor %}
@@ -137,7 +135,7 @@
             past: 0,
             cancelled: 0
         };
-        const todayDate = "{% now 'Y-m-d' %}";
+        const now = new Date();
 
         function normalizeStatus(status) {
             const upperStatus = String(status || '').toUpperCase();
@@ -155,18 +153,14 @@
 
         function getRowType(row) {
             const status = normalizeStatus(row.dataset.status);
-            const bookingDate = row.dataset.bookingDate;
+            const departure = new Date(row.dataset.departureDatetime);
 
             if (status === 'CANCELLED') {
                 return 'cancelled';
             }
 
-            if (status === 'BOOKED' && bookingDate < todayDate) {
-                return 'past';
-            }
-
-            if (status === 'BOOKED' && bookingDate >= todayDate) {
-                return 'upcoming';
+            if (status === 'BOOKED') {
+                return departure > now ? 'upcoming' : 'past';
             }
 
             return '';
@@ -239,7 +233,7 @@
             return;
         }
 
-        const departure = new Date(`${booking.date}T${booking.departure_time}`);
+        const departure = new Date(`${booking.departure_datetime}`);
         const now = new Date();
         const cutoff = new Date(departure.getTime() - 6 * 60 * 60 * 1000);
 

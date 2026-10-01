@@ -16,7 +16,6 @@
                             <th class="p-1 text-center align-middle">SOURCE</th>
                             <th class="p-1 text-center align-middle">DESTINATION</th>
                             <th class="p-1 text-center align-middle">NUM OF SEATS REM</th>
-                            <th class="p-1 text-center align-middle">DATE</th>
                             <th class="p-1 text-center align-middle">ARRIVAL TIME</th>
                             <th class="p-1 text-center align-middle">DEPARTURE TIME</th>
                             <th class="p-1 text-center align-middle">PRICE</th>
@@ -37,9 +36,8 @@
                                 data-seats-id="seats-{{row.schedule_id}}" aria-label="Refresh remaining seats"
                                 title="Refresh remaining seats">&#8635;</button>
                         </td>
-                        <td class="px-2 py-1 align-middle">{{row.date}}</td>
-                        <td class="px-2 py-1 align-middle">{{row.arrival_time}}</td>
-                        <td class="px-2 py-1 align-middle">{{row.departure_time}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.arrival_datetime}}</td>
+                        <td class="px-2 py-1 align-middle">{{row.departure_datetime}}</td>
                         <td class="px-2 py-1 align-middle">{{row.price}}</td>
                         <td class="px-2 py-1 align-middle text-center">
                             <a href="{% url 'displaybus' row.schedule_id %}" class="btn btn-secondary btn-sm rounded-0">View</a>

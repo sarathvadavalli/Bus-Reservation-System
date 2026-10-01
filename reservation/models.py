@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q, F
 from django.contrib.auth.models import User
 
 # Create your models here.
@@ -24,16 +25,15 @@ class Buses(models.Model):
         return self.bus_name
     
 
-class Schedule1(models.Model):
+class Schedule(models.Model):
     schedule_id = models.AutoField(primary_key=True)
     bus = models.ForeignKey(Buses, on_delete=models.CASCADE, null=True, blank=True)
     source = models.CharField(max_length=30)
     dest = models.CharField(max_length=30)
     rem = models.IntegerField()
-    date = models.DateField()
-    arrival_time = models.TimeField()
-    departure_time = models.TimeField()
-    status = models.CharField(max_length=20, default='AVAILABLE')
+    arrival_datetime = models.DateTimeField()
+    departure_datetime = models.DateTimeField()
+    # status = models.CharField(max_length=20, default='AVAILABLE')
 
     def save(self, *args, **kwargs):
         if self.rem is None:        
@@ -43,17 +43,21 @@ class Schedule1(models.Model):
     class Meta:
         verbose_name_plural = "List of Schedules"
         constraints = [ models.UniqueConstraint(
-                            fields=['bus', 'date', 'departure_time'], name='unique_schedule_combination'
-                        )
+                            fields=['bus', 'departure_datetime'], name='unique_schedule_combination'
+                        ),
+                        models.CheckConstraint(
+                            check=Q(arrival_datetime__lt=F("departure_datetime")),
+                            name="arrival_before_departure",
+                        ),
                     ]
 
     def __str__(self):
-        return self.bus.bus_name + " - " + self.source + " to " + self.dest + " on " + str(self.date)
+        return self.bus.bus_name + " - " + self.source + " to " + self.dest + " on " + str(self.departure_datetime)
 
 
 class SeatInventory(models.Model):
     schedule = models.ForeignKey(
-        Schedule1,
+        Schedule,
         on_delete=models.CASCADE,
         null=True, blank=True
     )
@@ -83,7 +87,7 @@ class SeatInventory(models.Model):
 class Book(models.Model):
     bookid = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    schedule = models.ForeignKey(Schedule1, on_delete=models.CASCADE, null=True, blank=True)
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, null=True, blank=True)
     nos = models.DecimalField(decimal_places=0, max_digits=2)
     seats = models.CharField(max_length=50, default="")
     price = models.DecimalField(decimal_places=2, max_digits=6)
@@ -93,7 +97,7 @@ class Book(models.Model):
             ('B', 'Booked'),
             ('C', 'Cancelled')
         ], 
-        default='U', max_length=20
+        default='B', max_length=20
     )
 
     class Meta:
@@ -106,7 +110,7 @@ class Book(models.Model):
 
 # class Seat(models.Model):
 #     seat_id = models.AutoField(primary_key=True)
-#     schedule_id = models.ForeignKey(Schedule1, on_delete=models.CASCADE)
+#     schedule_id = models.ForeignKey(Schedule, on_delete=models.CASCADE)
 #     book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
 #     seat_no = models.CharField(max_length=5)
 
