@@ -44,7 +44,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env_bool('DEBUG', False)
 
-ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', 'localhost, 127.0.0.1')
 
 
 # Application definition
@@ -133,14 +133,13 @@ SESSION_COOKIE_AGE = int(os.getenv('SESSION_COOKIE_AGE', '1800'))
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
+        "LOCATION": os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0'),
     }
 }
 
 
 # Celery configuration
-CELERY_BROKER_URL = os.getenv(
-    'CELERY_BROKER_URL',
+CELERY_BROKER_URL = (
     os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0'),
 )
 CELERY_TASK_IGNORE_RESULT = True
