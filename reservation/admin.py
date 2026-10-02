@@ -55,9 +55,12 @@ class ScheduleAdmin(admin.ModelAdmin):
             if changed:
                 super().save_model(request, obj, form, change)
 
-                arrival_date = old_obj.arrival_datetime.date()
-                key = f"bus_search_{old_obj.source}_{old_obj.dest}_{str(arrival_date)}"
-                cache.delete(key)
+                arrival_date_old = old_obj.arrival_datetime.date()
+                arrival_date_new = obj.arrival_datetime.date()
+                key1 = f"bus_search_{old_obj.source}_{old_obj.dest}_{str(arrival_date_old)}"
+                key2 = f"bus_search_{obj.source}_{obj.dest}_{str(arrival_date_new)}"
+                cache.delete(key1)
+                cache.delete(key2)
 
                 old_data = {
                     "source": old_obj.source,
