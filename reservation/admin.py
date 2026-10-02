@@ -1,9 +1,12 @@
+import os
 from django.contrib import admin
 from .models import Schedule, Buses, Profile, SeatInventory
 from django.db import transaction
 from django.core.cache import cache
 from .tasks import send_schedule_change_notifications
+from qstash import QStash
 
+client = QStash(os.environ.get("QSTASH_TOKEN"))
 
 def seat_creation(capacity):
     seats = []
@@ -70,10 +73,18 @@ class ScheduleAdmin(admin.ModelAdmin):
                     "departure_datetime": str(obj.departure_datetime)[:16],
                 }
 
-                send_schedule_change_notifications.delay(
-                    obj.schedule_id,
-                    old_data,
-                    new_data,
+                # send_schedule_change_notifications.delay(
+                #     obj.schedule_id,
+                #     old_data,
+                #     new_data
+                # )
+                client.message.publish_json(
+                    url="https://bus-reservation-system-b4rd.vercel.app/api/webhooks/schedule-changed/",
+                    body={
+                        "schedule_id": obj.schedule_id,
+                        "old_data": old_data,
+                        "new_data": new_data
+                    }
                 )
 
 

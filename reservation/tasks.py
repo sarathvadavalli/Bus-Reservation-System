@@ -2,10 +2,36 @@ from celery import shared_task
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from .models import Book
+from django.views.decorators.csrf import csrf_exempt
+from qstash import Receiver
 
 
-@shared_task
-def send_schedule_change_notifications(schedule_id, old_data, new_data):
+# @shared_task
+# def send_schedule_change_notifications(schedule_id, old_data, new_data):
+@csrf_exempt
+def send_schedule_change_notifications(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    signature = request.headers.get("Upstash-Signature")
+    receiver = Receiver(
+        current_signing_key=os.environ.get("QSTASH_CURRENT_SIGNING_KEY"),
+        next_signing_key=os.environ.get("QSTASH_NEXT_SIGNING_KEY"),
+    )
+
+    try:
+        receiver.verify(body=request.body.decode("utf-8"), signature=signature)
+    except Exception:
+        return HttpResponseForbidden("Invalid QStash Signature")
+
+    try:
+        data = json.loads(request.body)
+        schedule_id = data.get("schedule_id")
+        old_data = data.get("old_data")
+        new_data = data.get("new_data")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
     bookings = (
         Book.objects
         .filter(schedule_id=schedule_id, status='BOOKED')

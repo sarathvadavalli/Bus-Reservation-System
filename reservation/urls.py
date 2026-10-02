@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.urls import path
 from . import views
+from .tasks import send_schedule_change_notifications 
 
 urlpatterns = [
     path('', views.home, name="home"),
@@ -29,4 +30,5 @@ urlpatterns = [
     path('signup/', views.signup, name="signup"),
     path('signin/', views.signin, name="signin"),
     path('signout/', views.signout, name="signout"),
+    path("api/webhooks/schedule-changed/", send_schedule_change_notifications, name="schedule_changed_webhook"),
 ]
