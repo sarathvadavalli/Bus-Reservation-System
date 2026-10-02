@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from uuid import UUID
 import time
 from django.contrib import messages
 from django.shortcuts import render, redirect
@@ -120,6 +121,7 @@ def findbus(request):
             cache.set(cache_key, scheduled_buses, timeout=1800)
         else:
             print("Serving from the cache..")
+            print(cache_key)
 
         if scheduled_buses:
             remaining_by_schedule = dict(
@@ -146,66 +148,77 @@ def refresh_schedule_seats(request, schedule_id):
 
 @login_required(login_url='signin')
 def bookings(request):
-    context = {}
     if request.method == 'POST':
-        sch_id = request.POST.get('schedule_id')
-        seats_r = int(request.POST.get('no_seats'))
-        schedule = Schedule.objects.select_related('bus').get(schedule_id=sch_id)
-        bus = schedule.bus
-        user = request.user
+        idempotency_key = str(UUID(request.POST.get('idempotency_key', '')))
+        schedule_id = int(request.POST.get('schedule_id', ''))
+        seats_r = int(request.POST.get('no_seats', ''))
+
+        idempotency_cache_key = (
+            f'booking_idempotency:{request.user.pk}_{idempotency_key}'
+        )
+
+        if cache.get(idempotency_cache_key) == 'booked':
+            return render(request, 'findbus.html', {
+                'error': 'This booking was already successful. Please start a new booking.'
+            }, status=409)
+
+        try: 
+            schedule = Schedule.objects.select_related('bus').get(schedule_id=schedule_id)
+            bus = schedule.bus   
+
+        except Schedule.DoesNotExist:
+            return render(request, 'findbus.html', {
+                'error': 'Invalid booking request. Please try again.'
+            }, status=400)
+
         try:
             with transaction.atomic():
                 seats = (
                     SeatInventory.objects
                     .select_for_update(skip_locked=True)
-                    .filter(schedule=schedule, status="AVAILABLE")
-                    .order_by("seat_no")[:seats_r]
+                    .filter(schedule=schedule, status='AVAILABLE')
+                    .order_by('seat_no')[:seats_r]
                 )
 
                 if len(seats) < seats_r:
+                    cache.delete(idempotency_cache_key)
                     return render(request, 'findbus.html', {
-                        "error": "Sorry select fewer number of seats"
+                        'error': 'Sorry select fewer number of seats'
                     })
 
                 selected_seats = [seat.seat_no for seat in seats]
-                selected_seats_str = ', '.join(selected_seats)
-
-                price_r = seats_r * bus.price
                 booking = Book.objects.create(
-                    user=user,
+                    user=request.user,
                     schedule=schedule,
                     nos=seats_r,
-                    seats=selected_seats_str,
-                    price=price_r,
-                    time=datetime.now(),
-                    status='BOOKED'
+                    seats=', '.join(selected_seats),
+                    price=seats_r * bus.price,
+                    time=timezone.now(),
+                    status='BOOKED',
                 )
 
                 for seat in seats:
                     seat.status = 'BOOKED'
                     seat.save()
 
-                schedule.rem = schedule.rem - seats_r
+                schedule.rem -= seats_r
                 schedule.save()
+
+            cache.set(idempotency_cache_key, 'booked', timeout=900)
 
             return render(request, 'booking.html', {
                 'book': booking,
                 'bus': schedule,
-                'seats': selected_seats
+                'seats': selected_seats,
             })
 
         except IntegrityError:
             return render(request, 'findbus.html', {
-                "error": "Some seats were just booked by another user. Please try again."
+                'error': 'Some seats were just booked by another user. Please try again.'
             })
-        except Exception as e:
-            print(e)
-            return render(request, 'findbus.html', {
-                "error": e
-            })
-        
-    else:
-        return render(request, 'findbus.html')
+        except Exception as error:
+            print(error)
+            return render(request, 'findbus.html', {'error': error})
 
 
 @login_required(login_url='signin')

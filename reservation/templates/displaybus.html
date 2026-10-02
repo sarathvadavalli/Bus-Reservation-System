@@ -116,6 +116,7 @@
             {% csrf_token %}
             <input type="hidden" name="schedule_id" id="bus_id" value="{{ bus.schedule_id }}">
             <input type="hidden" name="no_seats" id="no_seats_hidden" value="">
+            <input type="hidden" name="idempotency_key" id="idempotency_key" value="">
       </form>
 
       <!-- Simple modal for seats input -->
@@ -144,6 +145,7 @@
 
             const seatInput = document.getElementById("no_seats_input");
             const hiddenSeatInput = document.getElementById("no_seats_hidden");
+            document.getElementById("idempotency_key").value = crypto.randomUUID();
             const bookingForm = document.getElementById("bookingForm");
             const totalPriceEl = document.getElementById("totalPrice");
             const modalError = document.getElementById("modalError");

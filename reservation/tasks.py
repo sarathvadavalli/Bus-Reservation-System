@@ -1,16 +1,24 @@
 import os, json
 from django.core.mail import EmailMultiAlternatives
+from django.core.cache import cache
 from django.http import HttpResponseForbidden, JsonResponse
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from qstash import Receiver
 from .models import Book
 
-
+# @shared_task
+# def send_schedule_change_notifications(schedule_id, old_data, new_data):
 @csrf_exempt
 def send_schedule_change_notifications(request):
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    message_id = request.headers["Upstash-Message-Id"]
+    key = f"processed:{message_id}"
+
+    if cache.get(key):
+        return JsonResponse({"status": "already processed"})
 
     signature = request.headers.get("Upstash-Signature")
     if not signature:
@@ -60,5 +68,7 @@ def send_schedule_change_notifications(request):
         )
         message.attach_alternative(html_content, "text/html")
         message.send()
+
+    cache.set(key, "1", timeout=2700)
 
     return JsonResponse({"status": "success", "processed": len(bookings)})
