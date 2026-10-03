@@ -1,44 +1,89 @@
 # Bus Reservation System
 
 ## Overview
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bus Reservation system is a comprehensive web application which is designed to facilitate easy and efficient ticket booking and management. It aims to streamline the entire process of viewing available buses, booking bus tickets and handling customer information. It solves the problem of manual booking of tickets which can lead to errors. It can be accessed by anyone at any place so that passengers need not visit the location to inquire about bus details and schedules.
 
- ## Features
-a) <b>Admin Panel:</b> Administrators have access to a dedicated dashboard where they can manage bus schedules and monitor bookings. The admin panel also allows for adding new buses, routes and updating bus information.
- 
-b) <b>User Registration and Authentication:</b> Users can create an account, log in securely and manage their profile. The user data is stored into database and used whenever user is logged in.
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bus Reservation system is a comprehensive web application which is designed to facilitate easy and efficient ticket booking and management. It aims to streamline the entire process of viewing available buses, booking tickets and cancellations. It solves the problem of manual booking of tickets where people had to visit the location to inquire about bus details and schedules which takes a lot of time.
 
-c) <b>User Profile:</b> Users can view their profile that consists of their username, email_id and phone number. It also enables them to edit the profile details and save them.
- 
-d) <b>Bus search and availability:</b> Users can search for buses based on the source, destination and travel date.
+## User Features
 
-e) <b>Book and Cancel ticket:</b> User is listed with available buses in the requested schedule and user can book tickets in any of the buses based on available seats. Before the journey date, user can also cancel the ticket.
+- User registration and authentication
+- Profile management
+- Search buses by source, destination, and travel date
+- View bus schedules, timings, and live available seats
+- Book the tickets and reserve seats
+- Cancel bookings
+- View booking history
+- Receive schedule-change notifications
 
-f) <b>Booking history:</b> User can also view all the bookings made by him/her and their details upto date.
+## Admin features
+
+- Manage buses and schedules through Django Admin
+- Autopopulate seat inventory when a schedule is created
+- Automatic cleanup of seat inventory for completed schedules periodically
+- Update schedule details
+- Trigger notifications for affected passengers when schedule changes
 
 ## Technologies Used
+
 * <b>Frontend:</b> HTML, CSS, JavaScript
+* <b>Backend:</b> Django, Session-based authentication, ORM, Redis, Celery, QStash
+* <b>Database:</b> MySQL (Hosted on AWS RDS)
+* <b>Cloud Deployment:</b> Vercel (Application), AWS (Database)
 
-* <b>Backend:</b> Django framework, Session-based authentication, Transactions and Concurrency
+## Backend features
 
-* <b>Database:</b> MySQL for data storage and management
+* **Concurrency Control** — pessimistic locking with select_for_update()
+* **Transaction Management** — atomic booking operations using transaction.atomic()
+* **Database Query Optimization** — Eliminates N+1 query problem using select_related()
+* **Caching** — Redis-based caching for frequently accessed bus search results
+* **Asynchronous Processing** — Celery locally and QStash for production background tasks
+* **Idempotency** — Redis-based idempotency keys with TTL to prevent duplicate booking requests
+* **Data Integrity** — Proper database constraints and foreign-key relationships
+* **Scheduled Cleanup** — Automated removal of seat inventory using django management command
 
-## Installation
-1.  Clone the repository:
-   
-                    git clone https://github.com/sarathvadavalli/bus_reservation_system.git
+## Quick Start
+
+1. Clone the repository:
+
+   `git clone https://github.com/sarathvadavalli/bus_reservation_system.git`
 2. Navigate to the project directory and install dependencies:
 
-                   cd bus-reservation-system
-                   pip install -r requirements.txt
-3. Set up the database
-   
-                    python manage.py migrate
-4. Run the developement server:
-   
-                    python manage.py runserver
+```bash
+   cd bus-reservation-system
+   pip install -r requirements.txt
+```
+
+3. Create a **.env** file in the project root and configure environment variables as defined in *.env.example* (Ensure that .env is added to **.gitignore** to avoid committing to the repository)
+4. Apply database migrations
+
+```bash
+   python manage.py migrate
+```
+
+5. Make sure Redis is running locally on `127.0.0.1:6379` or create a live Redis instance on a cloud platform like **Upstash** and specify its URL in .env
+
+   Verify the Redis connection:
+
+```bash
+   redis-cli ping  # Expected output: PONG
+```
+
+6. Configure QStash for asynchronous task processing in the production environment and add the following credentials to your `.env` file:
+
+```bash
+ QSTASH_TOKEN, QSTASH_CURRENT_SIGNING_KEY and QSTASH_NEXT_SIGNING_KEY
+```
+
+6. Run the developement server:
+
+```bash
+   python manage.py runserver
+```
+
+The application is running at `http://127.0.0.1:8000/` and admin panel is accessible at `http://127.0.0.1:8000/admin/`
 
 ## Sample data
+
 {
   "source": "Guntur",
   "destination": "Hyderabad",
@@ -46,6 +91,7 @@ f) <b>Booking history:</b> User can also view all the bookings made by him/her a
 }
 
 ## Future Enhancements
+
 - Personalizing customer's seat preference by asking them to choose either window or aisle seat.
 - Creating an agentic workflow that could autonomously search buses and book tickets based on user's preferences and constraints.
 - Integration with a payment gateway to make secure online payments for ticket bookings.
