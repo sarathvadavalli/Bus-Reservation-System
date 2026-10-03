@@ -30,6 +30,10 @@
 * <b>Database:</b> MySQL (Hosted on AWS RDS)
 * <b>Cloud Deployment:</b> Vercel (Application), AWS (Database)
 
+## Architecture
+
+![System Architecture](Architecture.png)
+
 ## Backend features
 
 * **Concurrency Control** — pessimistic locking with select_for_update()
