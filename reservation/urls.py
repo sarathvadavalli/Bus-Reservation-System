@@ -31,5 +31,5 @@ urlpatterns = [
     path('signin/', views.signin, name="signin"),
     path('signout/', views.signout, name="signout"),
     path("api/schedule-changed/", send_schedule_change_notifications, name="schedule_changed_webhook"),
-    path("api/cleanup-seat-inventory/", clean_up_seat_inventory, name="clean_up_seat_inventory"),
+    path("api/cleanup-seat-inventory/", cleanup_seat_inventory, name="cleanup_seat_inventory"),
 ]
