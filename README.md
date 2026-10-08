@@ -30,10 +30,9 @@
 * <b>Database:</b> MySQL (Hosted on AWS RDS)
 * <b>Cloud Deployment:</b> Vercel (Application), AWS (Database)
 
-
 ## Architecture
 
-![System Architecture](architecture.png)
+![System Architecture](Architecture.png)
 
 ## Backend features
 
