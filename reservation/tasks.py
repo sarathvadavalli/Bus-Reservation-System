@@ -4,6 +4,7 @@ from django.core.cache import cache
 from django.http import HttpResponseForbidden, JsonResponse
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from qstash import Receiver
 from .models import Book
 
@@ -72,3 +73,23 @@ def send_schedule_change_notifications(request):
     cache.set(key, "1", timeout=2700)
 
     return JsonResponse({"status": "success", "processed": len(bookings)})
+
+
+@require_POST
+def cleanup_seat_inventory(request):
+    auth_header = request.headers.get("Authorization")
+
+    expected = f"Bearer {os.environ.get('CRON_SECRET_KEY')}"
+
+    if auth_header != expected:
+        return JsonResponse({"detail": "Unauthorized"}, status=401)
+
+    completed_schedules = Schedule.objects.filter(
+        departure_time__lt=timezone.now()
+    )
+
+    deleted_count, _ = SeatInventory.objects.filter(
+        schedule__in=completed_schedules
+    ).delete()
+
+    return JsonResponse({"message": f"Cleanup completed. Deleted {deleted_count} rows"})

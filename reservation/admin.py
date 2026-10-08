@@ -82,7 +82,7 @@ class ScheduleAdmin(admin.ModelAdmin):
                 #     new_data
                 # )
                 client.message.publish_json(
-                    url="https://bus-reservation-system-b4rd.vercel.app/api/webhooks/schedule-changed/",
+                    url="https://bus-reservation-system-b4rd.vercel.app/api/schedule-changed/",
                     body={
                         "schedule_id": obj.schedule_id,
                         "old_data": old_data,

@@ -19,7 +19,7 @@
 
 - Manage buses and schedules through Django Admin
 - Autopopulate seat inventory when a schedule is created
-- Automatic cleanup of seat inventory for completed schedules periodically
+- Automatic cleanup of seat inventory for completed schedules everyday using Vercel cron
 - Update schedule details
 - Trigger notifications for affected passengers when schedule changes
 
@@ -30,16 +30,21 @@
 * <b>Database:</b> MySQL (Hosted on AWS RDS)
 * <b>Cloud Deployment:</b> Vercel (Application), AWS (Database)
 
+
+## Architecture
+
+![System Architecture](architecture.png)
+
 ## Backend features
 
-* **Concurrency Control** — pessimistic locking with select_for_update()
-* **Transaction Management** — atomic booking operations using transaction.atomic()
-* **Database Query Optimization** — Eliminates N+1 query problem using select_related()
-* **Caching** — Redis-based caching for frequently accessed bus search results
-* **Asynchronous Processing** — Celery locally and QStash for production background tasks
-* **Idempotency** — Redis-based idempotency keys with TTL to prevent duplicate booking requests
+* **Concurrency Control** — pessimistic locking with select_for_update() as there is a high probability of conflicts
+* **Transaction Management** — atomic booking and cancellation operations using transaction.atomic() ensuring data consistency and integrity
+* **Database Query Optimization** — Eliminates N+1 query problem using select_related() by fetching related objects in a single query
+* **Caching** — Redis-based caching for frequently accessed bus search results that improves response time
+* **Asynchronous Processing** — Celery locally and QStash for production background tasks that improves user experience
+* **Idempotency** — Redis-based idempotency keys with TTL to prevent duplicate booking requests ensuring data integrity
 * **Data Integrity** — Proper database constraints and foreign-key relationships
-* **Scheduled Cleanup** — Automated removal of seat inventory using django management command
+* **Scheduled Cleanup** — Automated removal of seat inventory using Vercel cron and a protected endpoint.
 
 ## Quick Start
 

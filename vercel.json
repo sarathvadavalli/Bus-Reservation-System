@@ -19,5 +19,11 @@
       "src": "/(.*)",
       "dest": "busreserve/wsgi.py"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cleanup-seat-inventory/",
+      "schedule": "30 20 * * *"
+    }
   ]
 }
